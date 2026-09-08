@@ -1,6 +1,6 @@
 {
   "label": "Nightscout",
-  "tags": [],
+  "tags": ["webappOnly"],
   "requires": [],
   "version": "0.11.4",
   "requiredVersions": {
