@@ -1,0 +1,28 @@
+{
+  "label": "Nightscout",
+  "tags": [],
+  "requires": [],
+  "version": "0.11.4",
+  "requiredVersions": {
+    "server": ">=0.0.0",
+    "client": ">=0.11.2"
+  },
+  "description": "None",
+  "author": "Adam Foster",
+  "platforms": [
+    "windows",
+    "linux",
+    "mac",
+    "mac64",
+    "macarm",
+    "android",
+    "ios",
+    "arm64",
+    "x64"
+  ],
+  "repository": "https://github.com/afoster549/DeskThing-Nightscout",
+  "homepage": "https://github.com/afoster549/DeskThing-Nightscout",
+  "updateUrl": "https://github.com/afoster549/DeskThing-Nightscout",
+  "id": "deskthing-nightscout",
+  "template": "full"
+}
