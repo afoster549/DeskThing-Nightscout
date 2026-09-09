@@ -1,5 +1,5 @@
-import { DeskThing } from '@deskthing/server';
-import { DESKTHING_EVENTS } from '@deskthing/types';
+import { DeskThing } from "@deskthing/server";
+import { DESKTHING_EVENTS } from "@deskthing/types";
 import { setupSettings } from "./settings";
 
 const start = async () => {
@@ -10,7 +10,7 @@ const start = async () => {
 };
 
 const stop = async () => {
-	console.log('Stopped the server')
+	console.log("Stopped the server")
 };
 
 DeskThing.on(DESKTHING_EVENTS.SETTINGS, (data) => {
