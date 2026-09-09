@@ -20,8 +20,6 @@ DeskThing.on(DESKTHING_EVENTS.SETTINGS, (data) => {
     // Reconfigure polling or update API headers with updatedSettings
 });
 
-// Main Entrypoint of the server
 DeskThing.on(DESKTHING_EVENTS.START, start);
 
-// Main exit point of the server
 DeskThing.on(DESKTHING_EVENTS.STOP, stop);
