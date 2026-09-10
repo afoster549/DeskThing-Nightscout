@@ -1,5 +1,17 @@
 import { FormattedReading, GlucoseUnit, NightscoutConfig, NightscoutEntry } from "./types";
 
+export interface ClientPayload {
+    bg: number;
+    trendArrow: string;
+    delta: number;
+    statusText: "HIGH" | "IN RANGE" | "LOW" | "URGENT LOW";
+    statusColor: string;
+    lastReadingTime: number;
+    units: "mmol" | "mgdl";
+    dataPoints: { time: string; timestamp: number; value: number }[];
+    forecastPoints: { time: string; value: number }[];
+}
+
 const DIRECTION_ARROWS: Record<string, string> = {
     DoubleUp: "↑↑",
     SingleUp: "↑",
@@ -83,5 +95,79 @@ export function parseNightscoutConfig(settings: Record<string, unknown> | null |
         token: String(rawToken).trim(),
         intervalMinutes: Math.max(1, Math.min(60, Number(rawInterval) || 5)),
         units: rawUnits === "mmol/l" ? "mmol/l" : "mg/dl",
+    };
+}
+
+export function buildClientPayload(
+    entries: NightscoutEntry[],
+    rawForecast: number[],
+    units: "mmol/l" | "mg/dl"
+): ClientPayload {
+    const isMmol = units === "mmol/l";
+    const toUnit = (value: number) => (isMmol ? Number((value / 18.01559).toFixed(1)) : Math.round(value));
+
+    const latest = entries[0];
+    const prev = entries[1] || entries[0];
+    const currentBg = toUnit(latest.sgv);
+
+    const rawDelta = latest.delta !== undefined ? latest.delta : latest.sgv - prev.sgv;
+    const delta = isMmol ? Number((rawDelta / 18.01559).toFixed(1)) : Math.round(rawDelta);
+
+    const lowTarget = isMmol ? 4.0 : 70;
+    const highTarget = isMmol ? 10.0 : 180;
+    let statusText: "HIGH" | "IN RANGE" | "LOW" | "URGENT LOW" = "IN RANGE";
+    let statusColor = "#22C55E";
+
+    if (currentBg < (isMmol ? 3.0 : 55)) {
+        statusText = "URGENT LOW";
+        statusColor = "#EF4444";
+    } else if (currentBg < lowTarget) {
+        statusText = "LOW";
+        statusColor = "#EF4444";
+    } else if (currentBg > highTarget) {
+        statusText = "HIGH";
+        statusColor = "#FACC15";
+    }
+
+    const dataPoints = [...entries].reverse().map((entry) => {
+        const date = new Date(entry.date);
+        return {
+            time: `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`,
+            timestamp: entry.date,
+            value: toUnit(entry.sgv),
+        };
+    });
+
+    let forecastPoints: { time: string; value: number }[] = [];
+    if (rawForecast.length > 0) {
+        forecastPoints = rawForecast.map((value, idx) => {
+            const d = new Date(latest.date + (idx + 1) * 5 * 60 * 1000);
+            return {
+                time: `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`,
+                value: toUnit(value),
+            };
+        });
+    } else {
+        const step = rawDelta;
+        forecastPoints = [1, 2, 3, 4].map((multiplier) => {
+            const proj = Math.max(36, latest.sgv + step * multiplier * 0.7);
+            const d = new Date(latest.date + multiplier * 5 * 60 * 1000);
+            return {
+                time: `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`,
+                value: toUnit(proj),
+            };
+        });
+    }
+
+    return {
+        bg: currentBg,
+        trendArrow: DIRECTION_ARROWS[latest.direction || ""] || "→",
+        delta,
+        statusText,
+        statusColor,
+        lastReadingTime: latest.date,
+        units: isMmol ? "mmol" : "mgdl",
+        dataPoints,
+        forecastPoints,
     };
 }
