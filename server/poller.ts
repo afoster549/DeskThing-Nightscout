@@ -1,17 +1,17 @@
-import { fetchNightscoutEntries } from "./utilities/api";
-import { formatReading } from "./utilities/formatter";
-import { FormattedReading, NightscoutConfig } from "./utilities/types";
+import { fetchNightscoutEntries, fetchNightscoutForecast } from "./utilities/api";
+import { buildClientPayload, ClientPayload } from "./utilities/formatter";
+import { NightscoutConfig } from "./utilities/types";
 
-export type ReadingCallback = (reading: FormattedReading) => void;
+export type PayloadCallback = (payload: ClientPayload) => void;
 
 export class NightscoutPoller {
     private config: NightscoutConfig | null = null;
     private timer: ReturnType<typeof setInterval> | null = null;
     private isPolling = false;
-    private onReading: ReadingCallback | null = null;
+    private onPayload: PayloadCallback | null = null;
 
-    constructor(onReading?: ReadingCallback) {
-        if (onReading) this.onReading = onReading;
+    constructor(onPayload?: PayloadCallback) {
+        if (onPayload) this.onPayload = onPayload;
     }
 
     public start(config: NightscoutConfig) {
@@ -46,10 +46,14 @@ export class NightscoutPoller {
 
         this.isPolling = true;
         try {
-            const entries = await fetchNightscoutEntries(this.config, 2);
-            const formatted = formatReading(entries, this.config.units);
-            if (formatted && this.onReading) {
-                this.onReading(formatted);
+            const [entries, forecast] = await Promise.all([
+                fetchNightscoutEntries(this.config, 36),
+                fetchNightscoutForecast(this.config),
+            ]);
+
+            if (entries.length > 0 && this.onPayload) {
+                const payload = buildClientPayload(entries, forecast, this.config.units);
+                this.onPayload(payload);
             }
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
