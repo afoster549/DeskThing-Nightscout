@@ -1,7 +1,7 @@
 import { DeskThing } from "@deskthing/server";
 import { DESKTHING_EVENTS } from "@deskthing/types";
 import { setupSettings } from "./settings";
-import { parseNightscoutConfig } from "./formatter";
+import { parseNightscoutConfig } from "./utilities/formatter";
 import { NightscoutPoller } from "./poller";
 import { FormattedReading } from "./utilities/types";
 
