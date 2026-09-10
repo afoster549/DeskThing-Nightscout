@@ -24,5 +24,6 @@
   "homepage": "https://github.com/afoster549/DeskThing-Nightscout",
   "updateUrl": "https://github.com/afoster549/DeskThing-Nightscout",
   "id": "deskthing-nightscout",
+  "isWebApp":true,
   "template": "full"
 }
