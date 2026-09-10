@@ -1,6 +1,6 @@
-import { fetchNightscoutEntries } from "./api";
+import { fetchNightscoutEntries } from "./utilities/api";
 import { formatReading } from "./formatter";
-import { FormattedReading, NightscoutConfig } from "./types";
+import { FormattedReading, NightscoutConfig } from "./utilities/types";
 
 export type ReadingCallback = (reading: FormattedReading) => void;
 

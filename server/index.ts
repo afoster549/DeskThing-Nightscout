@@ -3,7 +3,7 @@ import { DESKTHING_EVENTS } from "@deskthing/types";
 import { setupSettings } from "./settings";
 import { parseNightscoutConfig } from "./formatter";
 import { NightscoutPoller } from "./poller";
-import { FormattedReading } from "./types";
+import { FormattedReading } from "./utilities/types";
 
 const poller = new NightscoutPoller((reading: FormattedReading) => {
     const deltaStr = reading.displayDelta ? ` (${reading.displayDelta})` : "";

@@ -1,4 +1,4 @@
-import { FormattedReading, GlucoseUnit, NightscoutConfig, NightscoutEntry } from "./types";
+import { FormattedReading, GlucoseUnit, NightscoutConfig, NightscoutEntry } from "./utilities/types";
 
 const DIRECTION_ARROWS: Record<string, string> = {
     DoubleUp: "↑↑",
