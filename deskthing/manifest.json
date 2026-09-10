@@ -2,7 +2,7 @@
   "label": "Nightscout",
   "tags": ["webappOnly"],
   "requires": [],
-  "version": "0.11.4",
+  "version": "0.11.0",
   "requiredVersions": {
     "server": ">=0.11.0",
     "client": ">=0.11.2"
