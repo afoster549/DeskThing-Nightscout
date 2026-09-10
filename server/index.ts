@@ -1,15 +1,19 @@
 import { DeskThing } from "@deskthing/server";
 import { DESKTHING_EVENTS } from "@deskthing/types";
 import { setupSettings } from "./settings";
-import { parseNightscoutConfig } from "./utilities/formatter";
+import { parseNightscoutConfig, ClientPayload } from "./utilities/formatter";
 import { NightscoutPoller } from "./poller";
-import { FormattedReading } from "./utilities/types";
 
-const poller = new NightscoutPoller((reading: FormattedReading) => {
-    const deltaStr = reading.displayDelta ? ` (${reading.displayDelta})` : "";
-    console.log(
-        `[Nightscout] ${reading.displayValue} ${reading.displayUnits} ${reading.arrow}${deltaStr}`
-    );
+let latestPayload: ClientPayload | null = null;
+
+const poller = new NightscoutPoller((payload: ClientPayload) => {
+    latestPayload = payload;
+    console.log(`[Nightscout] ${payload.bg} ${payload.units} ${payload.trendArrow} (Δ: ${payload.delta})`);
+
+    DeskThing.send({
+        type: "nightscout_data",
+        payload,
+    });
 });
 
 const start = async () => {
@@ -34,6 +38,26 @@ DeskThing.on(DESKTHING_EVENTS.SETTINGS, (data) => {
     const config = parseNightscoutConfig(updatedSettings);
     poller.restart(config);
 });
+
+DeskThing.on("get_nightscout_data", () => {
+    console.log("1. Recived")
+
+    if (latestPayload) {
+        console.log("2. Sent")
+
+        DeskThing.send({
+            type: "nightscout_data",
+            payload: latestPayload,
+        });
+    }
+});
+
+DeskThing.on("ping", () => {
+    DeskThing.send({
+        type: "server_status",
+        payload: { ready: true }
+    })
+})
 
 DeskThing.on(DESKTHING_EVENTS.START, start);
 DeskThing.on(DESKTHING_EVENTS.STOP, stop);
