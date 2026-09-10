@@ -1,4 +1,4 @@
-import { getSha1 } from "./utilities/crypto";
+import { getSha1 } from "./crypto";
 import { NightscoutConfig, NightscoutEntry } from "./types";
 
 async function resolveAuth(rawToken?: string): Promise<{
