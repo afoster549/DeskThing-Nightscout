@@ -1,4 +1,4 @@
-import { FormattedReading, GlucoseUnit, NightscoutConfig, NightscoutEntry } from "./types";
+import { NightscoutConfig, NightscoutEntry } from "./types";
 
 export interface ClientPayload {
     bg: number;
@@ -25,51 +25,6 @@ const DIRECTION_ARROWS: Record<string, string> = {
 };
 
 const MMOL_CONVERSION_FACTOR = 18.01559;
-
-export function formatReading(entries: NightscoutEntry[], units: GlucoseUnit): FormattedReading | null {
-    if (!entries || entries.length === 0) return null;
-
-    const [latest, previous] = entries;
-    const sgvMgDl = latest.sgv;
-    const sgvMmolL = Number((sgvMgDl / MMOL_CONVERSION_FACTOR).toFixed(1));
-
-    let deltaMgDl: number | undefined = latest.delta;
-    if (deltaMgDl === undefined && previous?.sgv !== undefined) {
-        deltaMgDl = latest.sgv - previous.sgv;
-    }
-
-    let deltaMmolL: number | undefined;
-    let displayDelta: string | undefined;
-
-    if (deltaMgDl !== undefined) {
-        deltaMmolL = Number((deltaMgDl / MMOL_CONVERSION_FACTOR).toFixed(1));
-        const sign = deltaMgDl > 0 ? "+" : "";
-        displayDelta = units === "mmol/l"
-            ? `${sign}${deltaMmolL.toFixed(1)} mmol/L`
-            : `${sign}${Math.round(deltaMgDl)} mg/dL`;
-    }
-
-    const direction = latest.direction || "Flat";
-    const arrow = DIRECTION_ARROWS[direction] || "→";
-    const timestamp = new Date(latest.date);
-    const ageMinutes = Math.max(0, Math.round((Date.now() - latest.date) / 60000));
-
-    return {
-        sgvMgDl,
-        sgvMmolL,
-        displayValue: units === "mmol/l" ? sgvMmolL.toFixed(1) : String(Math.round(sgvMgDl)),
-        displayUnits: units,
-        direction,
-        arrow,
-        deltaMgDl,
-        deltaMmolL,
-        displayDelta,
-        timestamp,
-        ageMinutes,
-        isStale: ageMinutes >= 15,
-        device: latest.device,
-    };
-}
 
 function extractSettingValue<T>(setting: unknown, defaultValue: T): T {
     if (setting === undefined || setting === null) return defaultValue;
@@ -104,14 +59,14 @@ export function buildClientPayload(
     units: "mmol/l" | "mg/dl"
 ): ClientPayload {
     const isMmol = units === "mmol/l";
-    const toUnit = (value: number) => (isMmol ? Number((value / 18.01559).toFixed(1)) : Math.round(value));
+    const toUnit = (value: number) => (isMmol ? Number((value / MMOL_CONVERSION_FACTOR).toFixed(1)) : Math.round(value));
 
     const latest = entries[0];
     const prev = entries[1] || entries[0];
     const currentBg = toUnit(latest.sgv);
 
     const rawDelta = latest.delta !== undefined ? latest.delta : latest.sgv - prev.sgv;
-    const delta = isMmol ? Number((rawDelta / 18.01559).toFixed(1)) : Math.round(rawDelta);
+    const delta = isMmol ? Number((rawDelta / MMOL_CONVERSION_FACTOR).toFixed(1)) : Math.round(rawDelta);
 
     const lowTarget = isMmol ? 4.0 : 70;
     const highTarget = isMmol ? 10.0 : 180;
