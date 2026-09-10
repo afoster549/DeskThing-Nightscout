@@ -12,13 +12,8 @@ async function resolveAuth(rawToken?: string): Promise<{
     const trimmed = rawToken.trim();
     const isSha1 = /^[0-9a-f]{40}$/i.test(trimmed);
 
-    if (isSha1) {
-        return { apiSecretHeader: trimmed };
-    }
-
-    if (trimmed.includes("-")) {
-        return { apiSecretHeader: trimmed, tokenParam: trimmed };
-    }
+    if (isSha1) return { apiSecretHeader: trimmed };
+    if (trimmed.includes("-")) return { apiSecretHeader: trimmed, tokenParam: trimmed };
 
     return { apiSecretHeader: await getSha1(trimmed) };
 }
@@ -80,4 +75,29 @@ export async function fetchNightscoutEntries(
     });
 
     return parseNightscoutResponse<NightscoutEntry>(response);
+}
+
+export async function fetchNightscoutForecast(config: NightscoutConfig): Promise<number[]> {
+    try {
+        const endpoint = buildEndpoint(config.url, "/api/v1/devicestatus.json");
+        endpoint.searchParams.set("count", "1");
+
+        const headers: Record<string, string> = { Accept: "application/json" };
+        const { apiSecretHeader, tokenParam } = await resolveAuth(config.token);
+        if (apiSecretHeader) headers["api-secret"] = apiSecretHeader;
+        if (tokenParam) endpoint.searchParams.set("token", tokenParam);
+
+        const response = await fetch(endpoint.toString(), { headers, signal: AbortSignal.timeout(8000) });
+        if (!response.ok) return [];
+
+        const devData = await response.json();
+        const predicatedBGs = devData?.[0]?.openaps?.predBGs || devData?.[0]?.loop?.predicted;
+        if (predicatedBGs) {
+            const arr = predicatedBGs.IOB || predicatedBGs.COB || predicatedBGs.values || predicatedBGs;
+            if (Array.isArray(arr)) return arr.slice(0, 5);
+        }
+    } catch {
+        // Fall back gracefully if Loop/OpenAPS forecast is unavailable
+    }
+    return [];
 }
