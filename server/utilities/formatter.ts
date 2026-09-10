@@ -15,9 +15,9 @@ export interface ClientPayload {
 const DIRECTION_ARROWS: Record<string, string> = {
     DoubleUp: "↑↑",
     SingleUp: "↑",
-    FortyFiveUp: "↗",
+    FortyFiveUp: "↗\uFE0E",
     Flat: "→",
-    FortyFiveDown: "↘",
+    FortyFiveDown: "↘\uFE0E",
     SingleDown: "↓",
     DoubleDown: "↓↓",
     "NOT COMPUTABLE": "?",
