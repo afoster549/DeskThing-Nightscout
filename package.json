@@ -13,7 +13,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@deskthing/client": "latest",
+    "@deskthing/client": "^0.11.2",
     "@deskthing/server": "latest",
     "autoprefixer": "^10.4.21",
     "react": "^18.3.1",
